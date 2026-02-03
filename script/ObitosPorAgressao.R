@@ -40,5 +40,6 @@ rmarkdown::render(input = './script/Agressoes.Rmd',
 # apaga arquivos temporarios
 unlink('./*/*_files',recursive = T)
 unlink('./*/*_cache',recursive = T)
+unlink('./*/*_latex',recursive = T)
 
 
