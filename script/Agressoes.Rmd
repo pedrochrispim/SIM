@@ -1,0 +1,205 @@
+---
+title: "Obitos por agressão"
+output: html_notebook
+---
+```{r setup, cache=TRUE, warning=FALSE, message = FALSE, include=FALSE}
+pacotes <- c("readr", "data.table", "dplyr", "ggplot2","ggthemes","stringr","devtools", "lubridate")
+
+lapply(pacotes, function(x){
+  if(!require(x, character.only = TRUE)){
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
+devtools::install_github("danicat/read.dbc",force = T)
+library("read.dbc")
+
+```
+
+# Óbitos por agressão
+
+Aqui são considerados os códigos para agressão e causas indefinidas, como abaixo:
+
+## Agressões (X85-Y09)
+
+- **X85-X90**: Envenenamento por substância
+- **X91-X98**: Uso de objeto contundente ou perfurante
+- **X99-Y09**: Agressões por outros meios especificados
+
+## Eventos de intenção não determinada (Y10-Y34)
+
+- **Y10-Y19**: Envenenamento
+- **Y20-Y29**: Uso de objeto contundente ou perfurante
+- **Y30-Y34**: Outros meios
+
+
+# Codigos para Causas Externas
+
+### Causas externas de morbidade e mortalidade (Capítulo XX - V01-Y98)
+
+#### Acidentes (V01-X59)
+
+- **V01-V99**: Acidentes de transporte
+- **W00-W19**: Quedas
+- **W20-W49**: Exposição a forças mecânicas inanimadas
+- **W50-W64**: Exposição a forças mecânicas animadas
+- **W65-W74**: Afogamento e submersão acidentais
+- **W75-W84**: Outras ameaças à respiração
+- **W85-W99**: Exposição a corrente elétrica, radiação e extremos de temperatura e pressão
+- **X00-X09**: Exposição à fumaça, fogo e chamas
+- **X10-X19**: Contato com calor e substâncias quentes
+- **X20-X29**: Contato com animais e plantas venenosos
+- **X30-X39**: Exposição a forças da natureza
+- **X40-X49**: Envenenamento acidental e exposição a substâncias nocivas
+- **X50-X57**: Sobrecarga física e outros efeitos ambientais
+- **X58-X59**: Exposição a outros fatores especificados
+
+#### Lesões autoprovocadas (X60-X84)
+
+- **X60-X69**: Envenenamento autoprovocado
+- **X70-X79**: Lesão autoprovocada por outros meios especificados
+- **X80-X84**: Lesão autoprovocada por meios não especificados
+
+#### Agressões (X85-Y09)
+
+- **X85-X90**: Envenenamento por substância
+- **X91-X98**: Uso de objeto contundente ou perfurante
+- **X99-Y09**: Agressões por outros meios especificados
+
+#### Eventos de intenção não determinada (Y10-Y34)
+
+- **Y10-Y19**: Envenenamento
+- **Y20-Y29**: Uso de objeto contundente ou perfurante
+- **Y30-Y34**: Outros meios
+
+#### Complicações de cuidados médicos e cirúrgicos (Y40-Y84)
+
+- **Y40-Y59**: Complicações de drogas e medicamentos
+- **Y60-Y84**: Complicações de procedimentos médicos e cirúrgicos
+
+
+#### Outros fatores externos (Y85-Y98)
+
+- **Y85-Y89**: Sequelas de causas externas
+- **Y90-Y98**: Outros fatores e causas externos
+
+### Códigos específicos para agressões
+
+- **X85**: Agressão por envenenamento com drogas, medicamentos e substâncias biológicas
+- **X86**: Agressão por envenenamento com outras substâncias químicas e substâncias nocivas
+- **X87**: Agressão por pesticidas
+- **X88**: Agressão por gases e vapores
+- **X89**: Agressão por substâncias químicas corrosivas
+- **X90**: Agressão por substâncias químicas não especificadas
+- **X91**: Agressão por suspensão (estrangulamento)
+- **X92**: Agressão por afogamento e submersão
+- **X93**: Agressão por disparo de arma de fogo (pistola, revólver, rifle)
+- **X94**: Agressão por disparo de arma de fogo (espingarda)
+- **X95**: Agressão por disparo de outras armas de fogo e não especificadas
+- **X96**: Agressão por explosivos
+- **X97**: Agressão por fumo, fogo e chamas
+- **X98**: Agressão por objeto cortante
+- **X99**: Agressão por objeto contundente
+- **Y00**: Agressão por força corporal (socos, pontapés)
+- **Y01**: Agressão por projeção de objeto arremessado
+- **Y02**: Agressão por empurrão contra objeto (queda)
+- **Y03**: Agressão por projeção de pessoa de lugar elevado
+- **Y04**: Agressão por força física não especificada
+- **Y05**: Agressão sexual por força física
+- **Y06**: Negligência e abandono
+- **Y07**: Outros maus-tratos
+- **Y08**: Agressão por meio não especificado
+- **Y09**: Agressão por meio não especificado (genérico)
+
+
+# Gráficos
+
+```{r get data, cache=TRUE, warning=FALSE, message = FALSE}
+
+data.raw <- readRDS('../rdata/obitos.rds')
+
+# SEPARA DADOS de agressoes
+data.agressoes <- data.raw[,CAUSABAS := str_to_upper(CAUSABAS)
+                           # agressoes totais
+                           ][,agressoesT := ifelse(str_detect(CAUSABAS, "^X85|^X86|^X87|^X88|^X89|^X9|^Y0|^Y1|^Y2|Y30|Y31|Y32|Y33|Y34"),1,0)
+                           # agressoes indeterminadas
+                             ][,agressoesI := ifelse(str_detect(CAUSABAS, "^Y1|^Y2|Y30|Y31|Y32|Y33|Y34"),1,0)
+                             # agressoes especificas determinadas
+                               ][,agressoes := ifelse(str_detect(CAUSABAS, "^X85|^X86|^X87|^X88|^X89|^X9|^Y0"),1,0)
+                                 # data de obito
+                                 ][,.(dt_obito = dmy(DTOBITO),CODMUNRES,agressoes,agressoesT,agressoesI,idx)]
+
+# porcentagem de NA em dt_obito
+data.agressoes[,mean(is.na(dt_obito))*100]
+
+# subtotal nacional para agressoes
+agressoes <- data.agressoes[!is.na(dt_obito)]
+
+agressoes.st <- agressoes[,.(
+  # somente agressoes
+  Agressões = sum(agressoes,na.rm=T),
+  # Agressoes Totais
+  AgressõesT = sum(agressoesT,na.rm=T),
+  # Agressoes indeterminadas
+  AgressõesI = sum(agressoesI,na.rm=T)),by = .(year(dt_obito))] %>% 
+  melt(id.vars='year',
+       value.name = 'N',
+       variable.name = 'agressao')
+
+
+rm(list = c('data.raw.lista','data.raw','data.agressoes'))
+
+save.image(file = '../rdata/obitos_agressoes.RData')
+```
+
+
+```{r grafico agressoes, cache=TRUE, warning=FALSE, message = FALSE}
+
+
+agressoes.st %>% 
+  ggplot()+
+  geom_line(aes(x=year, y=N, color=agressao))+
+  labs(title = "Óbitos por agressões no Brasil",
+       y = "Óbitos (N/ano)",
+       x="",
+       color="Tipo de agressão",
+       caption = "Fonte:DATASUS/SIM")+
+  scale_y_continuous(labels = scales::comma_format(big.mark = ".",
+                                           decimal.mark = ","))+
+  scale_x_continuous(breaks = seq(from =1995, to =2026,by=5))+
+  theme_economist()
+
+agressoes.st[agressao=='Agressões'] %>% 
+  ggplot()+
+  geom_point(aes(x = year, y = N),color = "red")+
+  geom_line(aes(x = year, y = N),color = "red")+
+  
+  geom_hline(yintercept = agressoes.st[agressao=='Agressões' & year==2019,N],linetype=3,color="black")+
+  geom_hline(yintercept = agressoes.st[agressao=='Agressões' & year==2020,N],linetype=4,color="black")+
+ 
+  scale_y_continuous(labels = scales::comma_format(big.mark = ".",
+                                           decimal.mark = ","))+
+  scale_x_continuous(breaks = seq(from =1995, to = 2026, 3))+
+  
+  annotate(geom = "text", label="Governo FHC", x=2000, y=32000, color="dark blue",size=3)+
+  geom_area(data = data.table(Ano=seq(from=1995, to=2003, by=.1),Obitos=65000),aes(x=Ano,y=Obitos),fill="dark blue",alpha=.15)+
+  
+  annotate(geom = "text", label="Governo PT", x=2010, y=32000, color="red",size=3)+
+  geom_area(data = data.table(Ano=seq(from=2003, to=2016.417, by=.001),Obitos=65000),aes(x=Ano,y=Obitos),fill="red",alpha=.15)+
+  
+  annotate(geom = "text", label="Governos \nTemer &\nBolsonaro", x=2018, y=32000, color="dark green",hjust=0,size=3)+
+  geom_area(data = data.table(Ano=seq(from=2016.417, to=2022, by=.001),Obitos=65000),aes(x=Ano,y=Obitos),fill="dark green",alpha=.15)+
+  
+  annotate(geom = "text", label="Governo \nLula 3", x=2023, y=32000, color="red",hjust=0,size=3)+
+  geom_area(data = data.table(Ano=seq(from=2022, to=2026, by=.001),Obitos=65000),aes(x=Ano,y=Obitos),fill="red",alpha=.15)+
+  
+  theme_economist()+
+  labs(title = "Óbitos por agressões no Brasil",
+       y = "Óbitos (N/ano)",
+       x="",
+       caption = "Fonte:DATASUS/SIM")
+
+```
+
+

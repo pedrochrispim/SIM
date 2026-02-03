@@ -1,0 +1,10 @@
+---
+title: "Read me"
+output: html_notebook
+---
+
+Esse código apenas carrega os dados do DATASUS, seleciona os óbitos por agressões e constroi um gráfico referente aos dados brutos totais. É atualizado de forma esporadica e irregularmente e não tem garantias para qualquer uso. Use-o como exemplo e, se necessário, faça as correções para os fins que deseja.
+
+Esse código não garante o total de óbitos por agressões se seu interesse for o levantamenta detalhado para fins acadêmicos. Nesse caso, você é o responsável por definir exatamente o que está buscando antes de utilizar o código. Considere, também, utilizar taxas em vez de valores absolutos.
+
+Para o carregamento dos dados, o código pressupõe que os arquivos DBC estão em sua própria máquina e não estão copiados neste repositório porque são disponibilizados gratuitamente no site do DATASUS. Reproduza essa estrutura em sua máquina se pretende rodar o código localmente.
