@@ -1,5 +1,5 @@
 ---
-title: "Obitos por agressão"
+title: "Óbitos por agressão"
 output: pdf_document
 ---
 ```{r setup, cache=TRUE, warning=FALSE, message = FALSE, include=FALSE, echo=FALSE}
