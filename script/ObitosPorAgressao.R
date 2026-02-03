@@ -34,9 +34,11 @@ saveRDS(data.raw,file = '../rdata/obitos.rds')
 
 # produz relatorio de entrada
 rmarkdown::render(input = './script/Agressoes.Rmd',
-                  output_file = paste0('Agressoes_',Sys.Date(),'.nb.html'),
+                  output_file = paste0('Agressoes_',Sys.Date(),'.pdf'),
                   output_dir = './report')
 
 # apaga arquivos temporarios
 unlink('./*/*_files',recursive = T)
 unlink('./*/*_cache',recursive = T)
+
+

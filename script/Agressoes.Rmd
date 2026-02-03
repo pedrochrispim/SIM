@@ -1,9 +1,9 @@
 ---
 title: "Obitos por agressão"
-output: html_notebook
+output: pdf_document
 ---
-```{r setup, cache=TRUE, warning=FALSE, message = FALSE, include=FALSE}
-pacotes <- c("readr", "data.table", "dplyr", "ggplot2","ggthemes","stringr","devtools", "lubridate")
+```{r setup, cache=TRUE, warning=FALSE, message = FALSE, include=FALSE, echo=FALSE}
+pacotes <- c("readr", "data.table", "dplyr", "ggplot2","ggthemes","stringr","devtools", "lubridate","read.dbc")
 
 lapply(pacotes, function(x){
   if(!require(x, character.only = TRUE)){
@@ -11,9 +11,6 @@ lapply(pacotes, function(x){
     library(x, character.only = TRUE)
   }
 })
-
-devtools::install_github("danicat/read.dbc",force = T)
-library("read.dbc")
 
 ```
 
@@ -115,7 +112,7 @@ Aqui são considerados os códigos para agressão e causas indefinidas, como aba
 
 # Gráficos
 
-```{r get data, cache=TRUE, warning=FALSE, message = FALSE}
+```{r get data, cache=TRUE, warning=FALSE, message = FALSE, echo=FALSE}
 
 data.raw <- readRDS('../rdata/obitos.rds')
 
@@ -131,7 +128,7 @@ data.agressoes <- data.raw[,CAUSABAS := str_to_upper(CAUSABAS)
                                  ][,.(dt_obito = dmy(DTOBITO),CODMUNRES,agressoes,agressoesT,agressoesI,idx)]
 
 # porcentagem de NA em dt_obito
-data.agressoes[,mean(is.na(dt_obito))*100]
+print(paste("DO sem data de óbito:",data.agressoes[,round(mean(is.na(dt_obito))*100,3)],"%"))
 
 # subtotal nacional para agressoes
 agressoes <- data.agressoes[!is.na(dt_obito)]
@@ -140,9 +137,9 @@ agressoes.st <- agressoes[,.(
   # somente agressoes
   Agressões = sum(agressoes,na.rm=T),
   # Agressoes Totais
-  AgressõesT = sum(agressoesT,na.rm=T),
+  AgressõesTotais = sum(agressoesT,na.rm=T),
   # Agressoes indeterminadas
-  AgressõesI = sum(agressoesI,na.rm=T)),by = .(year(dt_obito))] %>% 
+  AgressõesIndeterminadas = sum(agressoesI,na.rm=T)),by = .(year(dt_obito))] %>% 
   melt(id.vars='year',
        value.name = 'N',
        variable.name = 'agressao')
@@ -154,7 +151,7 @@ save.image(file = '../rdata/obitos_agressoes.RData')
 ```
 
 
-```{r grafico agressoes, cache=TRUE, warning=FALSE, message = FALSE}
+```{r grafico agressoes, cache=TRUE, warning=FALSE, message = FALSE, echo=FALSE}
 
 
 agressoes.st %>% 
@@ -168,7 +165,8 @@ agressoes.st %>%
   scale_y_continuous(labels = scales::comma_format(big.mark = ".",
                                            decimal.mark = ","))+
   scale_x_continuous(breaks = seq(from =1995, to =2026,by=5))+
-  theme_economist()
+  theme_economist()+
+  theme(legend.text = element_text(size=8.5))
 
 agressoes.st[agressao=='Agressões'] %>% 
   ggplot()+
