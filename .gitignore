@@ -8,6 +8,7 @@
 .RDataTmp
 *.Rproj
 SIM.Rproj
+.gitattributes
 
 # User-specific files
 .Ruserdata
