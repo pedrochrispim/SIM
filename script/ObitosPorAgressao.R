@@ -25,9 +25,8 @@ data.raw <- rbindlist(
 )
 
 
-data.raw <- unique(data.raw) %>%
-  .[,id:=1] %>%
-  .[,idx := cumsum(id)]
+data.raw <- unique(data.raw)[,id:=1
+                             ][,idx := cumsum(id)]
 
 
 
