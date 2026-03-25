@@ -125,7 +125,7 @@ data.agressoes <- data.raw[,CAUSABAS := str_to_upper(CAUSABAS)
                              # agressoes especificas determinadas
                                ][,agressoes := ifelse(str_detect(CAUSABAS, "^X85|^X86|^X87|^X88|^X89|^X9|^Y0"),1,0)
                                  # data de obito
-                                 ][,.(dt_obito = dmy(DTOBITO),CODMUNRES,agressoes,agressoesT,agressoesI,idx)]
+                                 ][,.(dt_obito = Data,CODMUNRES,agressoes,agressoesT,agressoesI,idx)]
 
 # porcentagem de NA em dt_obito
 print(paste("DO sem data de óbito:",data.agressoes[,round(mean(is.na(dt_obito))*100,3)],"%"))

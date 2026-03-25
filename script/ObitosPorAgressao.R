@@ -29,7 +29,9 @@ data.raw <- unique(data.raw) %>%
   .[,id:=1] %>%
   .[,idx := cumsum(id)]
 
-saveRDS(data.raw,file = '../rdata/obitos.rds')
+
+
+saveRDS(data.raw,file = './rdata/obitos.rds')
 
 
 # produz relatorio de entrada
